@@ -90,9 +90,9 @@ DEFAULT:
 # Ý tưởng: Hình ảnh gồm có 16 dòng, mỗi dòng 64 kí tự.
 # 	   Duyệt lần lượt và in từng dòng ra màn hình 
 # Ý nghĩa các thanh ghi:
-# $s0: Biến đếm số hàng hiện tại.
-# $s1: Tổng số hàng (16).
-# $s2: Chứa chuỗi tương ứng của hàng hiện tại.
+# $s0: Biến đếm số dòng hiện tại.
+# $s1: Tổng số dòng (16).
+# $s2: Chứa chuỗi tương ứng của dòng hiện tại.
 #--------------------------------------------------------
 MENU1:	
 	addi	$s0, $0, 0	# init $s0 = 0
@@ -115,8 +115,8 @@ LOOP_MENU1:
 # Ý tưởng: Duyệt theo từng dòng, nếu kí tự là chữ số thì
 # 	   chỉ in ra dấu cách, nếu không thì giữ nguyên.
 # Ý nghĩa các thanh ghi:
-# $s0: Biến đếm số hàng hiện tại.
-# $s1: Tổng số hàng (16).
+# $s0: Biến đếm số dòng hiện tại.
+# $s1: Tổng số dòng (16).
 # $s2: Địa chỉ kí tự hiện tại.
 # $t0: Đếm vị trí kí tự hiện tại trong dòng.
 # $t1: Số kí tự mỗi dòng (64).
@@ -165,11 +165,11 @@ MENU2_ENDLINE:
 # 	   Phần 2: Cột 24 đến 44 -> chữ C
 # 	   Phần 3: Cột 45 đến 61 -> chữ E
 # 	   Phần 4: Còn lại (space và \n)
-#	Sau đó in hàng theo thứ tự 3-2-1-4
+#	Sau đó in dòng theo thứ tự 3-2-1-4
 # Ý nghĩa các thanh ghi:
-# $s0: Biến đếm số hàng hiện tại.
-# $s1: Tổng số hàng (16).
-# $s2: Địa chỉ hàng hiện tại.
+# $s0: Biến đếm số dòng hiện tại.
+# $s1: Tổng số dòng (16).
+# $s2: Địa chỉ dòng hiện tại.
 # $t0: Kí tự space (0x20)
 #--------------------------------------------------------
 MENU3:	
@@ -228,9 +228,15 @@ MENU3_LOOP:
 #	   theo từng vùng tương tự với option 3. Tiến hành thay mã màu mới vào các
 #	   vùng tương ứng (D, C, E).
 # Ý nghĩa các thanh ghi:
-# $s0: Biến đếm số hàng hiện tại.
-# $s1: Tổng số hàng (16).
-# $s2: Địa chỉ hàng hiện tại.
+# $s0: Biến đếm số dòng hiện tại.
+# $s1: Tổng số dòng (16).
+# $s2: Biến duyệt qua tất cả kí tự của hình ảnh 
+# $s3: Màu mới của D
+# $s4: Màu mới của C
+# $s5: Màu mới của E
+# $t0: Biến đếm - vị trí hiện tại trên dòng 
+# $t1: Số kí tự 1 dòng (64)
+# $t2: Kí tự hiện tại
 # $t7: Màu cũ của D
 # $t8: Màu cũ của C
 # $t9: Màu cũ của E
@@ -275,13 +281,13 @@ addi	$s0, $0, 0
 addi	$s1, $0, 16
 la	$s2, String1
 
-LOOP_CHANGE_COLOR:	
-	beq	$s1, $s0, UPDATE_COLOR_CODE
+LOOP_MENU4:	
+	beq	$s1, $s0, END_LOOP_MENU4
 	addi	$t0, $0, 0
 	addi	$t1, $0, 64
 	
-LOOP_CHANGE_COLOR_ROW:
-	beq	$t1, $t0, END_CHANGE_COLOR_ROW
+LOOP_ROW:
+	beq	$t1, $t0, END_LOOP_ROW
 	lb	$t2, 0($s2)			# Load kí tự hiện tại
 	
 # D - vị trí từ 0 đến 23
@@ -311,18 +317,19 @@ FIX_E:
 	j	NEXT_CHAR
 	
 NEXT_CHAR:
-	addi	$s2, $s2, 1	# Kí tự hiện tại.
-	addi	$t0, $t0, 1	# Tăng counter 
-	j LOOP_CHANGE_COLOR_ROW
+	addi	$s2, $s2, 1	# Kí tự tiếp theo
+	addi	$t0, $t0, 1	# Cập nhật vị trí trên dòng 
+	j LOOP_ROW
 		
-END_CHANGE_COLOR_ROW:	
+END_LOOP_ROW:	
 	addi	$s0, $s0, 1	# Tăng counter dòng 
-	j LOOP_CHANGE_COLOR
+	j LOOP_MENU4
 
-UPDATE_COLOR_CODE:
-	move	$t7, $s3
-	move	$t8, $s4
-	move	$t9, $s5 
+END_LOOP_MENU4:
+	# Update and print
+	addi	$t7, $s3, 0
+	addi	$t8, $s4, 0
+	addi	$t9, $s5, 0 
 	j	MENU1
 
 EXIT:
