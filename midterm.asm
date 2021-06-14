@@ -146,7 +146,7 @@ FIND_MAX:
     END_WHILE2:
 
     # Duyệt mảng theo chiều xuôi để ghép các chữ số lại
-	addi	$t0, $a1, 0
+		addi	$t0, $a1, 0
     addi    $a2, $a2, 4
     WHILE3:
         beq     $t0, $a2, END_WHILE3
