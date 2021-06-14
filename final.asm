@@ -16,7 +16,7 @@
 	String15:	.asciiz	"    \\   > /               **111111***111*                     \n"
 	String16:	.asciiz	"     -----                   ***********     dce.hust.edu.vn  \n"
 
-	Message0:	.asciiz	"------------Ve hinh bang ki tu ASCII------------\n"
+	Message0:	.asciiz	"\n\n------------Ve hinh bang ki tu ASCII------------\n"
 	Option1:	.asciiz	"1. Hien thi hinh anh\n"
 	Option2:	.asciiz	"2. Hien thi hinh anh ko co mau\n"
 	Option3:	.asciiz	"3. Doi vi tri cua D va E\n"
@@ -28,10 +28,11 @@
 	StringE:	.asciiz	"4.3. Mau moi cua E (0->9): "
 
 .text
-li	$t5, 50	# t5: original color of D
-li	$t6, 49	# t6: original color of C
-li	$t7, 51	# t7: original color of E
 
+# Màu cũ của các chữ 
+li	$t7, 50	# original color of D
+li	$t8, 49	# original color of C
+li	$t9, 51	# original color of E
 
 MENU:
 	la	$a0, Message0
@@ -55,7 +56,6 @@ MENU:
 	la	$a0, Select
 	li	$v0, 4
 	syscall
-
 	li	$v0, 5	# Read user's selsection 
 	syscall
 
@@ -222,10 +222,19 @@ MENU3_LOOP:
 	j	MENU3_LOOP
 
 
-#--------------------------------------------------------
+#-------------------------------------------------------------------------------------------
 # Option 4: Đổi màu chữ
-# Ý tưởng: 
-#--------------------------------------------------------
+# Ý tưởng: Nhận mã màu mới của từng chữ từ người dùng, duyệt kết hợp với kiểm tra 
+#	   theo từng vùng tương tự với option 3. Tiến hành thay mã màu mới vào các
+#	   vùng tương ứng (D, C, E).
+# Ý nghĩa các thanh ghi:
+# $s0: Biến đếm số hàng hiện tại.
+# $s1: Tổng số hàng (16).
+# $s2: Địa chỉ hàng hiện tại.
+# $t7: Màu cũ của D
+# $t8: Màu cũ của C
+# $t9: Màu cũ của E
+#-------------------------------------------------------------------------------------------
 MENU4: 
 INPUT_D_COLOR:	
 	li 	$v0, 4		
@@ -278,18 +287,18 @@ LOOP_CHANGE_COLOR_ROW:
 # D - vị trí từ 0 đến 23
 CHECK_D:
 	bgt	$t0, 23, CHECK_C		# vị trí > 23 -> CHECK_C
-	beq	$t2, $t5, FIX_D			# Kí tự là màu của D -> FIX 
+	beq	$t2, $t7, FIX_D			# Kí tự là màu của D -> FIX 
 	j	NEXT_CHAR
 
 # C - vị trí từ 24 đến 44
 CHECK_C:
 	bgt	$t0, 44, CHECK_E
-	beq	$t2, $t6, FIX_C
+	beq	$t2, $t8, FIX_C
 	j	NEXT_CHAR
 	
 # E - vị trí từ 45 đến 63
 CHECK_E:
-	beq	$t2, $t7, FIX_E
+	beq	$t2, $t9, FIX_E
 	j	NEXT_CHAR
 FIX_D:
 	sb	$s3, 0($s2)		# Gán màu mới cho kí tự hiện tại
@@ -307,16 +316,13 @@ NEXT_CHAR:
 	j LOOP_CHANGE_COLOR_ROW
 		
 END_CHANGE_COLOR_ROW:	
-	li	$v0, 4  
-	addi	$a0, $s2, -64	# In ra dòng vừa được sửa
-	syscall	
 	addi	$s0, $s0, 1	# Tăng counter dòng 
 	j LOOP_CHANGE_COLOR
 
 UPDATE_COLOR_CODE:
-	move	$t5, $s3
-	move	$t6, $s4
-	move	$t7, $s5 
-	j	MENU
+	move	$t7, $s3
+	move	$t8, $s4
+	move	$t9, $s5 
+	j	MENU1
 
 EXIT:
